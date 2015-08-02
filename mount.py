@@ -9,19 +9,34 @@ def circlemount():
 
 def solenoid():
     wp = Workplane("front") #work face
-    body = wp.box(2.0, 2.0, 8)
-    bFace = body.faces(">Z")      
+    boxh = 8.2
+    boxl = 11.86
+    body = wp.box(10.5, boxh, boxl) #basic shell
+    bFace = body.faces(">Z")  
+    nozzle = bFace.circle(1.55).extrude(5.0)  
+    fFace = body.faces("<Z")
+    fNozzle = fFace.circle(1.55).extrude(-5.0)
+    joined = wp.union(fNozzle).union(nozzle).faces(">Z").hole(2)
 
-    nozzle = wp.circle(2.0).extrude(2) #inner  
     
-   # body =  
+    
+    slotw = 6.18
+    sloth = 2
+    #create top slot
+    slot = joined.faces(">X").workplane().center(boxh/2, 0)
+    slotted = slot.rect(sloth*2,slotw).cutThruAll()
+    #add coil
+    pbFace = slotted.faces(">Z")
+    coil  = pbFace.workplane(offset = -5).center(0,2).circle(4).extrude(-boxl)
+  
+    return coil
 
 def export(name, shape):
     with open(name,'w') as f:
         f.write(exporters.toString(shape, 'STL'))
 
 def main():
-    export("ex.stl", circlemount())
+    export("ex.stl", solenoid())
 
 if  __name__ == "__main__":
     main()
